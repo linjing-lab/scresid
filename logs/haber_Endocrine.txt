@@ -1,0 +1,102 @@
+Filter cells with min_genes=200 ...
+Filter genes with min_cells=10 ...
+Normalize total counts per cell ...
+Apply log1p ...
+Compute highly variable genes with n_top_genes=6000 ...
+Scale with max_value=10 ...
+Preprocess completed: 9842 cells x 6000 genes.
+AnnData object with n_obs × n_vars = 9842 × 6000
+    obs: 'batch', 'barcode', 'condition', 'cell_type', 'n_genes'
+    var: 'n_cells', 'highly_variable', 'means', 'dispersions', 'dispersions_norm', 'mean', 'std'
+
+ condition
+stimulated    6602
+control       3240
+Name: count, dtype: int64
+
+ cell_type
+TA.Early                 1970
+Stem                     1857
+Enterocyte.Progenitor    1822
+Enterocyte               1458
+TA                       1188
+Goblet                    758
+Tuft                      409
+Endocrine                 380
+Name: count, dtype: int64
+source control cells = 3128 | auto ratio = 0.0818 | ensemble = [0.05, 0.0818]
+Epoch  99 | loss 3213.298 rec 3211.937 content 0.475 resp 0.694: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [19:46<00:00, 11.86s/it]
+Predict done | 112 cells | top_k=157 | mean_gate=0.677 | delta_std=0.1837
+Predict done | 112 cells | top_k=256 | mean_gate=0.677 | delta_std=0.1794
+Predict done | 792 cells | top_k=201 | mean_gate=0.800 | delta_std=0.2022
+[LOCO] TA.Early           alpha=0.45 var=0.30 mean_top=0.6826 var_all=0.6519
+Predict done | 670 cells | top_k=211 | mean_gate=0.822 | delta_std=0.1994
+[LOCO] Stem               alpha=0.75 var=0.60 mean_top=0.3820 var_all=0.6698
+Predict done | 545 cells | top_k=221 | mean_gate=0.780 | delta_std=0.1862
+[LOCO] Enterocyte.Progenitor alpha=0.00 var=1.00 mean_top=0.3586 var_all=0.4922
+Predict done | 424 cells | top_k=231 | mean_gate=0.826 | delta_std=0.2008
+[LOCO] Enterocyte         alpha=0.00 var=0.60 mean_top=0.2866 var_all=0.5793
+Predict done | 421 cells | top_k=231 | mean_gate=0.821 | delta_std=0.2007
+[LOCO] TA                 alpha=0.60 var=0.30 mean_top=0.3846 var_all=0.6218
+Predict done | 216 cells | top_k=248 | mean_gate=0.754 | delta_std=0.1961
+[LOCO] Goblet             alpha=0.00 var=0.30 mean_top=0.6970 var_all=0.5205
+[LOCO] aggregated -> alpha=0.23, var_strength=0.45
+AnnData object with n_obs × n_vars = 112 × 6000
+    obs: 'batch', 'barcode', 'condition', 'cell_type', 'n_genes', 'scresid_confidence'
+    var: 'n_cells', 'highly_variable', 'means', 'dispersions', 'dispersions_norm', 'mean', 'std'
+    uns: 'scresid'
+    obsm: 'X_scresid_content', 'X_scresid_response'
+
+===== evaluate : baseline (DC-RL + CAOT + ensemble) =====
+PCA cluster results ...
+Compute rank_genes_groups ...
+Common DEGs (top 100): 4
+Looks like you are using a tranform that doesn't support FancyArrowPatch, using ax.annotate instead. The arrows might strike through texts. Increasing shrinkA in arrowprops might help.
+R2 mean: all genes 0.801, top genes 0.884
+R2 var: all genes 0.618, top genes 0.674
+Plot rank_genes_groups / violin / dotplot ...
+---- scresid metrics ----
+  r2_mean_all                      0.8010
+  r2_mean_top                      0.8840
+  r2_var_all                       0.6180
+  r2_var_top                       0.6740
+  top_response_pearson             0.3118
+  top_response_cosine              0.8336
+  offtarget_ratio                  0.8935
+  cell_level_delta_std             0.1837
+  mean_confidence_gate             0.6773
+  content_response_abs_corr        0.1331
+
+===== evaluate : calibrated (+ response anchor + var alignment) =====
+PCA cluster results ...
+Compute rank_genes_groups ...
+Common DEGs (top 100): 1
+R2 mean: all genes 0.806, top genes 0.794
+R2 var: all genes 0.581, top genes 0.789
+Plot rank_genes_groups / violin / dotplot ...
+---- scresid metrics ----
+  r2_mean_all                      0.8060
+  r2_mean_top                      0.7940
+  r2_var_all                       0.5810
+  r2_var_top                       0.7890
+  top_response_pearson             0.3284
+  top_response_cosine              0.8285
+  offtarget_ratio                  1.0684
+  cell_level_delta_std             0.1837
+  mean_confidence_gate             0.6773
+  content_response_abs_corr        0.1331
+
+============================================================================
+metric                              baseline    calibrated         delta
+----------------------------------------------------------------------------
+r2_mean_all                           0.8010        0.8060       +0.0050
+r2_mean_top                           0.8840        0.7940       -0.0900
+r2_var_all                            0.6180        0.5810       -0.0370
+r2_var_top                            0.6740        0.7890       +0.1150
+common_top_degs                       4.0000        1.0000       -3.0000
+top_response_pearson                  0.3118        0.3284       +0.0165
+top_response_cosine                   0.8336        0.8285       -0.0050
+offtarget_ratio                       0.8935        1.0684       +0.1749
+cell_level_delta_std                  0.1837        0.1837       +0.0000
+content_response_abs_corr             0.1331        0.1331       +0.0000
+============================================================================

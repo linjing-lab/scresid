@@ -1,0 +1,75 @@
+import warnings
+
+import numpy as np
+import scanpy as sc
+
+import scresid
+
+warnings.filterwarnings("ignore")
+
+# --------------------------------------------------------------------- #
+# Public API (identical to the driving script)
+# --------------------------------------------------------------------- #
+adata = sc.read_h5ad("scresid_bundle/data/Srivatsan.h5ad")
+adata = scresid.adata_process(
+    adata,
+    # n_top_genes=2000
+)
+adata.obs.rename(columns={'perturbation': 'condition'}, inplace=True) # Srivatsan
+adata.obs.rename(columns={'cell_line': 'cell_type'}, inplace=True)
+adata.obs['condition'].replace({"PDH.inhibitor": "stimulated"}, inplace=True)
+adata.obs['condition'].replace({"ACLY.inhibitor": "stimulated"}, inplace=True)
+adata.obs['condition'].replace({"ACSS2.inhibitor": "stimulated"}, inplace=True)
+adata.obs['condition'].replace({"Citrate": "stimulated"}, inplace=True)
+adata.obs['condition'].replace({"Pyruvate": "stimulated"}, inplace=True)
+adata.obs['condition'].replace({"Acetate": "stimulated"}, inplace=True)
+adata.obs['condition'].replace({"Chloride": "stimulated"}, inplace=True)
+adata = sc.AnnData(adata.X, obs=adata.obs.copy(), var=adata.var.copy())
+adata.obs_names_make_unique()
+print(adata)
+print("\n", adata.obs["condition"].value_counts())
+print("\n", adata.obs["cell_type"].value_counts())
+
+model = scresid.SCRESID(input_dim=adata.n_vars, device="cuda:0")
+model = model.to(model.device)
+
+key_dic = {
+    "condition_key": "condition",
+    "cell_type_key": "cell_type",
+    "ctrl_key": "control",
+    "stim_key": "stimulated",
+    "pred_key": "predict",
+}
+
+cell_to_pred = "A549"
+# The training set does not contain the target type after perturbation.
+train = adata[~((adata.obs[key_dic["cell_type_key"]] == cell_to_pred)
+                & (adata.obs[key_dic["condition_key"]] == key_dic["stim_key"]))].copy()
+model.train_SCRESID(train, batch_size=512, lr=5e-5, epochs=100)
+
+adata_to_pred = adata[((adata.obs[key_dic["cell_type_key"]] == cell_to_pred)
+                       & (adata.obs[key_dic["condition_key"]] == key_dic["ctrl_key"]))].copy()
+pred = model.predict(
+    train_adata=train,
+    cell_to_pred=cell_to_pred,
+    key_dic=key_dic,
+    ratio=0.5,  # clamped by the adaptive ratio cap derived from the source size
+)
+print(pred)
+
+# --------------------------------------------------------------------- #
+# Baseline vs LOCO-SC calibrated evaluation
+# --------------------------------------------------------------------- #
+pred_cal = scresid.apply_calibration(pred, train, cell_to_pred, key_dic=key_dic)
+
+eval_base = scresid.make_eval_adata(adata, pred, cell_to_pred, key_dic)
+eval_cal = scresid.make_eval_adata(adata, pred_cal, cell_to_pred, key_dic)
+
+print("\n===== evaluate : baseline (DC-RL + CAOT + ensemble) =====")
+m_base = scresid.evaluate(eval_base, cell_to_pred, key_dic, pred_adata=pred)
+
+print("\n===== evaluate : calibrated (+ response anchor + var alignment) =====")
+m_cal = scresid.evaluate(eval_cal, cell_to_pred, key_dic, pred_adata=pred_cal)
+
+print()
+scresid.print_comparison(m_base, m_cal)

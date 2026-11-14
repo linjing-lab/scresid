@@ -1,0 +1,86 @@
+AnnData object with n_obs × n_vars = 5374 × 6329
+    obs: 'nCount_RNA', 'nFeature_RNA', 'cellQ', 'gender', 'location', 'condition', 'cell_type', 'pathology', 'origin', 'subset', 'sample', 'path_str'
+    var: 'name'
+
+ condition
+stimulated    3246
+control       2128
+Name: count, dtype: int64
+
+ cell_type
+TA2            1905
+Macrophages    1452
+CD8+ LP        1166
+CD8+ IELs       752
+CD8+ IL17+       99
+Name: count, dtype: int64
+source control cells = 1585 | auto ratio = 0.1615 | ensemble = [0.05, 0.1615]
+Epoch  99 | loss 9977.673 rec 9976.143 content 0.494 resp 0.844: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [11:33<00:00,  6.94s/it]
+Predict done | 543 cells | top_k=80 | mean_gate=0.756 | delta_std=0.2370
+Predict done | 543 cells | top_k=256 | mean_gate=0.756 | delta_std=0.2209
+Predict done | 723 cells | top_k=227 | mean_gate=0.709 | delta_std=0.3125
+[LOCO] TA2                alpha=0.00 var=0.00 mean_top=0.4970 var_all=0.6287
+Predict done | 429 cells | top_k=275 | mean_gate=0.721 | delta_std=0.3612
+[LOCO] CD8+ LP            alpha=0.60 var=0.60 mean_top=0.9237 var_all=0.8460
+Predict done | 409 cells | top_k=278 | mean_gate=0.726 | delta_std=0.2889
+[LOCO] CD8+ IELs          alpha=0.75 var=0.30 mean_top=0.9168 var_all=0.8561
+[LOCO] aggregated -> alpha=0.60, var_strength=0.30
+AnnData object with n_obs × n_vars = 543 × 6329
+    obs: 'nCount_RNA', 'nFeature_RNA', 'cellQ', 'gender', 'location', 'condition', 'cell_type', 'pathology', 'origin', 'subset', 'sample', 'path_str', 'scresid_confidence'
+    var: 'name'
+    uns: 'scresid'
+    obsm: 'X_scresid_content', 'X_scresid_response'
+
+===== evaluate : baseline (DC-RL + CAOT + ensemble) =====
+PCA cluster results ...
+Compute rank_genes_groups ...
+Common DEGs (top 100): 0
+Looks like you are using a tranform that doesn't support FancyArrowPatch, using ax.annotate instead. The arrows might strike through texts. Increasing shrinkA in arrowprops might help.
+R2 mean: all genes 0.974, top genes 0.984
+R2 var: all genes 0.797, top genes 0.676
+Plot rank_genes_groups / violin / dotplot ...
+---- scresid metrics ----
+  r2_mean_all                      0.9740
+  r2_mean_top                      0.9840
+  r2_var_all                       0.7970
+  r2_var_top                       0.6760
+  top_response_pearson             0.4950
+  top_response_cosine              0.6999
+  offtarget_ratio                  1.0830
+  cell_level_delta_std             0.2370
+  mean_confidence_gate             0.7563
+  content_response_abs_corr        0.1101
+
+===== evaluate : calibrated (+ response anchor + var alignment) =====
+PCA cluster results ...
+Compute rank_genes_groups ...
+Common DEGs (top 100): 1
+R2 mean: all genes 0.976, top genes 0.988
+R2 var: all genes 0.856, top genes 0.634
+Plot rank_genes_groups / violin / dotplot ...
+---- scresid metrics ----
+  r2_mean_all                      0.9760
+  r2_mean_top                      0.9880
+  r2_var_all                       0.8560
+  r2_var_top                       0.6340
+  top_response_pearson             0.6656
+  top_response_cosine              0.7831
+  offtarget_ratio                  1.0655
+  cell_level_delta_std             0.2370
+  mean_confidence_gate             0.7563
+  content_response_abs_corr        0.1101
+
+============================================================================
+metric                              baseline    calibrated         delta
+----------------------------------------------------------------------------
+r2_mean_all                           0.9740        0.9760       +0.0020
+r2_mean_top                           0.9840        0.9880       +0.0040
+r2_var_all                            0.7970        0.8560       +0.0590
+r2_var_top                            0.6760        0.6340       -0.0420
+common_top_degs                       0.0000        1.0000       +1.0000
+top_response_pearson                  0.4950        0.6656       +0.1706
+top_response_cosine                   0.6999        0.7831       +0.0832
+offtarget_ratio                       1.0830        1.0655       -0.0174
+cell_level_delta_std                  0.2370        0.2370       +0.0000
+content_response_abs_corr             0.1101        0.1101       +0.0000
+============================================================================
